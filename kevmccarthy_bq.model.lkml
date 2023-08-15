@@ -1,6 +1,6 @@
 connection: "kevmccarthy_bq"
 
-explore: order_items {}
+# explore: order_items {}
 
 view: order_items {
   sql_table_name: `kevmccarthy.thelook_with_orders_km.order_items` ;;
