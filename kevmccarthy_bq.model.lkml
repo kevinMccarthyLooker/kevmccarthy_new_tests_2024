@@ -9,9 +9,9 @@ view: order_items {
     datatype: timestamp
     sql: ${TABLE}.created_at ;;
   }
-  measure: order_item_count {
-    type: count
-  }
+  # measure: order_item_count {
+  #   type: count
+  # }
 
 
 }
