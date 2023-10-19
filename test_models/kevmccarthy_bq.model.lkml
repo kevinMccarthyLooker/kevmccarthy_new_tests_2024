@@ -15,7 +15,7 @@ view: order_items {
 
 
 }
-
+explore: order_items {}
 
 view: suggestion_order_test {
   derived_table: {
@@ -61,4 +61,4 @@ view: scatter {
 }
 explore: scatter {}
 
-include: "/test_validator.*"
+include: "*/test_validator.*"
