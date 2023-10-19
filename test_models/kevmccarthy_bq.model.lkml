@@ -61,4 +61,4 @@ view: scatter {
 }
 explore: scatter {}
 
-include: "*/test_validator.*"
+include: "*test_validator.dashboard"

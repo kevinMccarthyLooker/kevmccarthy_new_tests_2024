@@ -9,7 +9,8 @@
     model: kevmccarthy_bq
     explore: order_items
     type: looker_column
-    fields: [order_items.created_year, order_items.order_item_count]
+    fields: [order_items.created_year, #order_items.order_item_count
+    ]
     fill_fields: [order_items.created_year]
     sorts: [order_items.created_year desc]
     limit: 500
