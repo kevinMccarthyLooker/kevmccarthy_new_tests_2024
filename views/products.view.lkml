@@ -3,6 +3,7 @@ view: products {
   drill_fields: [id]
 
   dimension: id {
+    view_label: "System Keys"
     primary_key: yes
     type: number
     sql: ${TABLE}.id ;;
@@ -10,6 +11,8 @@ view: products {
   dimension: brand {
     type: string
     sql: ${TABLE}.brand ;;
+    drill_fields: [name]
+
   }
   dimension: category {
     type: string
@@ -48,13 +51,10 @@ view: products {
   # ----- Sets of fields for drilling ------
   set: detail {
     fields: [
-	id,
-	name,
-	distribution_centers.name,
-	distribution_centers.id,
-	order_items.count,
-	inventory_items.count
-	]
+  id,
+  name,
+  order_items.count,
+  ]
   }
 
 }

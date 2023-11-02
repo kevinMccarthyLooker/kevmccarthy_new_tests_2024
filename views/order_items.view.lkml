@@ -3,6 +3,7 @@ view: order_items {
   drill_fields: [id]
 
   dimension: id {
+    view_label: "System Keys"
     primary_key: yes
     type: number
     sql: ${TABLE}.id ;;
@@ -23,9 +24,15 @@ view: order_items {
     sql: ${TABLE}.inventory_item_id ;;
   }
   dimension: order_id {
+    view_label: "System Keys"
     type: number
     # hidden: yes
     sql: ${TABLE}.order_id ;;
+  }
+
+  measure: distinct_orders {
+    type: count_distinct
+    sql: ${order_id} ;;
   }
   dimension: product_id {
     type: number
@@ -40,6 +47,7 @@ view: order_items {
   dimension: sale_price {
     type: number
     sql: ${TABLE}.sale_price ;;
+    value_format_name: usd
   }
   dimension_group: shipped {
     type: time
@@ -63,16 +71,16 @@ view: order_items {
   # ----- Sets of fields for drilling ------
   set: detail {
     fields: [
-	id,
-	users.last_name,
-	users.id,
-	users.first_name,
-	inventory_items.id,
-	inventory_items.product_name,
-	products.name,
-	products.id,
-	orders.order_id
-	]
+  id,
+  users.last_name,
+  users.id,
+  users.first_name,
+  inventory_items.id,
+  inventory_items.product_name,
+  products.name,
+  products.id,
+  orders.order_id
+  ]
   }
 
 }
