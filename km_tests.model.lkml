@@ -11,7 +11,9 @@ view: test_measure_default_behavior {
     sql: sum(${TABLE}.value) ;;
   }
 }
-explore: test_measure_default_behavior {}
+explore: test_measure_default_behavior {
+  persist_for: "15 seconds"
+}
 
 view: test_pivot_merge {
   derived_table: {
