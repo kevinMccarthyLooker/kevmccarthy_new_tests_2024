@@ -10,6 +10,10 @@ view: test_measure_default_behavior {
   measure: value {
     sql: sum(${TABLE}.value) ;;
   }
+
+  dimension: now_dimension {
+    sql: current_timestamp() ;;
+  }
 }
 explore: test_measure_default_behavior {
   persist_for: "15 seconds"
