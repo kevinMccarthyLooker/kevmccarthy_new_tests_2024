@@ -1,20 +1,22 @@
 connection: "kevmccarthy_bq"
 
+include: "/views/order_items.view.lkml"
 # explore: order_items {}
 
-view: order_items {
-  sql_table_name: `kevmccarthy.thelook_with_orders_km.order_items` ;;
-  dimension_group: created {
-    type: time timeframes: [date, month, year]
-    datatype: timestamp
-    sql: ${TABLE}.created_at ;;
-  }
-  # measure: order_item_count {
-  #   type: count
-  # }
+# view: order_items {
+#   sql_table_name: `kevmccarthy.thelook_with_orders_km.order_items` ;;
+#   dimension_group: created {
+#     type: time timeframes: [date, month, year]
+#     datatype: timestamp
+#     sql: ${TABLE}.created_at ;;
+#   }
+#   # measure: order_item_count {
+#   #   type: count
+#   # }
 
 
-}
+# }
+
 explore: order_items {}
 
 view: suggestion_order_test {
@@ -61,4 +63,30 @@ view: scatter {
 }
 explore: scatter {}
 
-include: "*test_validator.dashboard"
+
+view: dimensions_drill_test {
+  derived_table: {
+    sql:
+    select 1 as id, 'a' as letter, 'apple' as fruit , 'blue' as color
+    union all
+    select 2 as id, 'a' as letter, 'banana' as fruit , 'blue' as color
+    union all
+    select 2 as id, 'a' as letter, 'banana' as fruit , 'blue' as color
+    ;;
+  }
+  dimension: id {type:number}
+  dimension: letter {
+    link: {
+      label: "test"
+      url: "{{letter._link}}"
+      }
+    link: {
+      label: "abc"
+      url: "abc"
+    }
+    drill_fields: [color,letter]
+  }
+  dimension: fruit {type:string}
+  dimension: color {type:string}
+}
+explore: dimensions_drill_test {}

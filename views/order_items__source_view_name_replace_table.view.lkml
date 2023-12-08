@@ -1,4 +1,7 @@
-view: order_items {
+view: order_items__source_view_name_replace_table {
+  #in extensions we'll override this
+  dimension: view_name {sql:${TABLE};;}
+
   sql_table_name: `kevmccarthy.thelook_with_orders_km.order_items` ;;
   drill_fields: [id]
 
@@ -6,7 +9,7 @@ view: order_items {
     view_label: "System Keys"
     primary_key: yes
     type: number
-    sql: ${TABLE}.id ;;
+    sql: ${view_name}.id ;;
   }
   dimension_group: created {
     # group_label: "NO DATE"
@@ -14,7 +17,7 @@ view: order_items {
 
     type: time
     timeframes: [raw, time, date, week, month, quarter, year]
-    sql: date_add(${TABLE}.created_at, interval 365 day) ;;
+    sql: date_add(${view_name}.created_at, interval 365 day) ;;
   }
   parameter: filter_to_last_day_of_prior_month {
     type: yesno
@@ -44,18 +47,18 @@ view: order_items {
   dimension_group: delivered {
     type: time
     timeframes: [raw, time, date, week, month, quarter, year]
-    sql: ${TABLE}.delivered_at ;;
+    sql: ${view_name}.delivered_at ;;
   }
   dimension: inventory_item_id {
     type: number
     # hidden: yes
-    sql: ${TABLE}.inventory_item_id ;;
+    sql: ${view_name}.inventory_item_id ;;
   }
   dimension: order_id {
     view_label: "System Keys"
     type: number
     # hidden: yes
-    sql: ${TABLE}.order_id ;;
+    sql: ${view_name}.order_id ;;
   }
 
   measure: distinct_orders {
@@ -65,31 +68,31 @@ view: order_items {
   dimension: product_id {
     type: number
     # hidden: yes
-    sql: ${TABLE}.product_id ;;
+    sql: ${view_name}.product_id ;;
   }
   dimension_group: returned {
     type: time
     timeframes: [raw, time, date, week, month, quarter, year]
-    sql: ${TABLE}.returned_at ;;
+    sql: ${view_name}.returned_at ;;
   }
   dimension: sale_price {
     type: number
-    sql: ${TABLE}.sale_price ;;
+    sql: ${view_name}.sale_price ;;
     value_format_name: usd
   }
   dimension_group: shipped {
     type: time
     timeframes: [raw, time, date, week, month, quarter, year]
-    sql: ${TABLE}.shipped_at ;;
+    sql: ${view_name}.shipped_at ;;
   }
   dimension: status {
     type: string
-    sql: ${TABLE}.status ;;
+    sql: ${view_name}.status ;;
   }
   dimension: user_id {
     type: number
     # hidden: yes
-    sql: ${TABLE}.user_id ;;
+    sql: ${view_name}.user_id ;;
   }
   measure: count {
     type: count
