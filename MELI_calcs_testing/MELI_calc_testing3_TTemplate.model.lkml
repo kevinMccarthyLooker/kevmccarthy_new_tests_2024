@@ -111,12 +111,44 @@ view: measures_output_template {
   #Should it be 'replace:' function, or 'replace_first:'?
   measure: numerator_in_timeframe{
     type:number
-    sql: {{input_numerator_field._sql | replace: 'SUM(','SUM( ${timeframe_specification} * '}} ;;
+    # sql: {{input_numerator_field._sql | replace: 'SUM(','SUM( ${timeframe_specification} * '}} ;;
+    # sql: tst ;; #no error
+    # sql: {{input_numerator_field._sql }} ;;#no error
+    # sql:  {{input_numerator_field._sql | trim }};;
+    # sql: teest ;;
+    # sql:
+    # {% assign timeframe_specification = 'SUM' | append:'${timeframe_specification}' %}
+    # {{input_numerator_field._sql | replace: 'SUM(',timeframe_specification }} ;;
+
+    # {% assign replacement_sql = 'SUM' | append: timeframe_specification %}
+    #
+    # {% assign input_sql = "${input_numerator_field}" %}
+    required_fields: [timeframe_specification,input_numerator_field]
+    sql:
+    {% assign timeframe_specification = 'SUM(' | append:timeframe_specification._sql | append: ' * ' %}
+    {% assign input_sql = input_numerator_field._sql %}
+    {% assign final_sql = input_sql | replace: 'SUM(', timeframe_specification %}
+    {{final_sql}}
+    ;;
+    #
+
+    # timeframe_specification:{{timeframe_specification}}
     value_format_name: decimal_2
   }
   measure: denominator_in_timeframe{
     type:number
-    sql: {{input_denominator_field._sql | replace: 'SUM(','SUM( ${timeframe_specification} * '}} ;;
+    # sql: {{input_denominator_field._sql | replace: 'SUM(','SUM( ${timeframe_specification} * '}} ;;
+    # sql:
+    # {% assign timeframe_specification = 'SUM' | append:'${timeframe_specification}' %}
+    # {{input_denominator_field._sql | replace: 'SUM(',timeframe_specification }} ;;
+    required_fields: [timeframe_specification,input_denominator_field]
+    sql:
+    {% assign timeframe_specification = 'SUM(' | append: timeframe_specification._sql | append: ' * ' %}
+    {% assign input_sql = input_denominator_field._sql %}
+    {% assign final_sql = input_sql | replace: 'SUM(', timeframe_specification %}
+    {{final_sql}}
+    ;;
+
     value_format_name: decimal_2
   }
   measure: output_percent {
@@ -164,6 +196,11 @@ view: apply_template {
 }
 
 view: wow_comparison_measures {
+  measure: numerator_change_wow {
+    type: number
+    sql: ${measures_output_current.numerator_in_timeframe}-${measures_output_prior.numerator_in_timeframe} ;;
+    value_format_name: decimal_2
+  }
   measure: percent_change_wow {
     description: "like Delta PPM%"
     sql: ${measures_output_current.output_percent}-${measures_output_prior.output_percent} ;;
@@ -171,20 +208,20 @@ view: wow_comparison_measures {
   }
   measure: impact_of_percent_change {
     description: "equivalent to Variaciones - %.  Impact of this groups wow % change on $Complete (based on current sales)"
-    sql: ${percent_change_wow}*${measures_output_current.numerator_in_timeframe} ;;
+    sql: ${percent_change_wow}*${measures_output_current.denominator_in_timeframe} ;;
     value_format_name: decimal_2
   }
-  measure: numerator_change_wow {
-    label: "(intermediate) numerator change"
+  measure: denominator_change_wow {
+    label: "(intermediate) denominator change"
     description: "intermediate helper calculation"
     type: number
-    sql: ${measures_output_current.numerator_in_timeframe}-${measures_output_prior.numerator_in_timeframe} ;;
+    sql: ${measures_output_current.denominator_in_timeframe}-${measures_output_prior.denominator_in_timeframe} ;;
     value_format_name: decimal_2
   }
-  measure: impact_of_numerator_change {
+  measure: impact_of_denominator_change {
     description: "like Vol in example calculations. this describes what counterfactual would be if rate (complete %/ppm%) had stayed static, assumes prior week overall ppm %"
     type: number
-    sql: ${numerator_change_wow}*${measures_output_prior.grand_total_output_percent} ;;
+    sql: ${denominator_change_wow}*${measures_output_prior.grand_total_output_percent} ;;
     value_format_name: decimal_2
   }
 
@@ -192,7 +229,7 @@ view: wow_comparison_measures {
   # #kev figures (based on the 'check' logic, that mix could be calculated as PPM(curr) - PPM(P) - impact_of_percent_change - impact_of_volume_change
   measure: impact_of_mix {
     type: number
-    sql: ${numerator_change_wow}*(${measures_output_prior.output_percent} - ${measures_output_prior.grand_total_output_percent} ) ;;
+    sql: ${denominator_change_wow}*(${measures_output_prior.output_percent} - ${measures_output_prior.grand_total_output_percent} ) ;;
     value_format_name: decimal_2
   }
 
@@ -200,14 +237,14 @@ view: wow_comparison_measures {
   measure: ctc__rate__so_called {
     description: "same as 'Rate' in mockup, but needs a different label?  Impact_of_percent_change as a percent of overall"
     type: number
-    sql: 1.0*${impact_of_percent_change}/nullif(${measures_output_current.grand_total_numerator},0) ;;
+    sql: 1.0*${impact_of_percent_change}/nullif(${measures_output_current.grand_total_denominator},0) ;;
     value_format_name: percent_0
   }
   # #QUESTION IN MOCKUP WHETHER TO USE REVENUE (total_sale_price) OR PPM(..._complete) in denominator
   measure: ctc__mix {
     description: "same as 'Mix' in CTC section of mockup mockup, but needs a different label?  impact_of_mix as a percent of overall"
     type: number
-    sql: 1.0*${impact_of_mix}/nullif(${measures_output_current.grand_total_numerator},0) ;;
+    sql: 1.0*${impact_of_mix}/nullif(${measures_output_current.grand_total_denominator},0) ;;
     value_format_name: percent_0
   }
   measure: ctc__s_efecto_vol {
@@ -215,6 +252,16 @@ view: wow_comparison_measures {
     type: number
     sql: ${ctc__rate__so_called} + ${ctc__mix} ;;
     value_format_name: percent_0
+  }
+
+  measure: subtotal_for_check {
+    type: number
+    sql: ${impact_of_percent_change}+${impact_of_denominator_change}+${impact_of_mix} ;;
+  }
+  measure: check {
+    description: "impact of % change, numerator change, and mix together should equal wow numerator change"
+    type: string
+    sql: concat( 'wow numerator change:', cast(round(${numerator_change_wow},2) as string),' should = ',cast(round(${subtotal_for_check},2) as string)) ;;
   }
 
 }
