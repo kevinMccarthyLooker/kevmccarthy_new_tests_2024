@@ -17,6 +17,13 @@ include: "/views/order_items.view.lkml"
 
 # }
 
+view: +order_items {
+  dimension: created_date_minute15 {
+    type: date_minute15
+    sql: ${created_raw} ;;
+  }
+}
+
 explore: order_items {}
 
 view: suggestion_order_test {
@@ -26,6 +33,7 @@ view: suggestion_order_test {
           union all select 'males'
           ;;
   }
+
   dimension: gender {
     suggest_persist_for: "0 seconds"
     order_by_field: gender_sort

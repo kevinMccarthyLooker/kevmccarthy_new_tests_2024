@@ -1,5 +1,6 @@
 view: users {
-  sql_table_name: `kevmccarthy.thelook_with_orders_km.users` ;;
+  # sql_table_name: `kevmccarthy.thelook_with_orders_km.users` ;;
+  sql_table_name: `users` ;;#adjusted for AA demo
   drill_fields: [id]
 
   dimension: id {

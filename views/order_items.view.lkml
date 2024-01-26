@@ -1,19 +1,32 @@
 view: order_items {
-  sql_table_name: `kevmccarthy.thelook_with_orders_km.order_items` ;;
+  # sql_table_name: `kevmccarthy.thelook_with_orders_km.order_items` ;;
+  derived_table: {
+    sql:
+select
+    id,order_id,user_id,product_id,inventory_item_id,status,created_at,shipped_at,delivered_at,returned_at,sale_price
+    from `kevmccarthy.thelook_with_orders_km.order_items`
+    union all
+    (select
+    id,order_id,user_id,product_id,inventory_item_id,'cancelled' as status,cast('2023-04-02' as timestamp) as created_at,shipped_at,delivered_at,returned_at,sale_price
+    from `kevmccarthy.thelook_with_orders_km.order_items` limit 1)
+
+    ;;
+  }
   drill_fields: [id]
 
   dimension: id {
     view_label: "System Keys"
     primary_key: yes
-    type: number
-    sql: ${TABLE}.id ;;
+    # type: number
+    type: string
+    sql: cast(${TABLE}.id as string) ;;
   }
   dimension_group: created {
     # group_label: "NO DATE"
     # group_item_label: "datetest"
 
     type: time
-    timeframes: [raw, time, date, week, month, quarter, year]
+    timeframes: [raw, time, minute15, date, week, month, quarter, year]
     sql: date_add(${TABLE}.created_at, interval 365 day) ;;
   }
   parameter: filter_to_last_day_of_prior_month {
@@ -112,6 +125,11 @@ view: order_items {
     type: count_distinct
     sql: ${created_date};;
   }
+
+##test filter cascading /12
+dimension: status_2 {
+  sql: concat(${status}, '-test') ;;
+}
 
 
 }
