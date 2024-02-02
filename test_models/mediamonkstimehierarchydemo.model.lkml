@@ -35,6 +35,7 @@ where
     ;;
   }
   dimension: created_date {
+    type: date
     datatype: date
     sql: ${TABLE}.created_at ;;
   }

@@ -98,3 +98,33 @@ view: dimensions_drill_test {
   dimension: color {type:string}
 }
 explore: dimensions_drill_test {}
+
+####
+view: test_suggestions {
+  derived_table: {
+    sql:
+    select 1 as a_number, 'a' as a_string, PARSE_DATE('%Y-%m-%d','2024-01-01') as a_date
+    union all
+    select 2 as a_number, 'b' as a_string, PARSE_DATE('%Y-%m-%d','2024-01-02')  as a_date
+    ;;
+  }
+  dimension: a_number {type:number}
+  dimension: a_string {}
+  dimension: a_date {
+    type: date
+    datatype: date
+  }
+  filter: date_filter_field {
+    type: date
+    default_value: "2024-01-01"
+    convert_tz: no
+  }
+}
+explore: test_suggestions {
+  always_filter: {filters:[test_suggestions.date_filter_field: "2024-01-01"]}
+  # sql_always_where: ${test_suggestions.a_date}=PARSE_DATE('%Y-%m-%d','2024-01-02')  ;;
+  sql_always_where: {% condition test_suggestions.date_filter_field %}timestamp(${test_suggestions.a_date}){%endcondition%}
+  and ${test_suggestions.a_date}=PARSE_DATE('%Y-%m-%d','2024-01-02')
+  ;;
+}
+####
