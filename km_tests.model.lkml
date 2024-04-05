@@ -208,7 +208,9 @@ select 98 as id, 'c' as dim__a_b_c, 'green' as dim_red_green_blue, 12 as value
 explore:  timeline_viz {}
 
 include: "/tdash.dashboard.lookml"
-connection: "kevmccarthy_bq"
+include: "/t_extended_to_hide.dashboard.lookml"
+include: "/test_user_attributes.dashboard.lookml"
+# connection: "kevmccarthy_bq"
 
 explore: order_items {}
 
@@ -288,3 +290,45 @@ view: dimensions_drill_test {
   dimension: fruit {}
 }
 # explore: dimensions_drill_test {}
+
+
+
+view: tick_density_test {
+  derived_table: {
+    sql: select 1 as value, 'one' as name union all select 2, 'two' union all select rand(), 'rand' ;;
+  }
+  dimension: value {}
+  measure: total_value {
+    type: sum
+    sql: ${value} ;;
+  }
+  dimension: name {}
+}
+explore: tick_density_test {}
+
+view: test_user_group_mapping {
+  derived_table: {sql:select 1 as id;;}
+  dimension: id {}
+dimension: my_name {sql: {{_user_attributes['name']}} ;;}
+  dimension: my_group {
+    sql:
+{% if _user_attributes['name'] == 'Kevin McCarthy'%}group_1
+{% elsif _user_attributes['name'] == 'John Smith'%}group_1
+{% elsif _user_attributes['name'] == 'Jane Does'%}group_2
+{%else %}unnassigned
+{%endif%}
+    ;;
+  }
+  dimension: my_group_value_attribute_1 {
+    sql:
+{%assign my_group = test_user_group_mapping.my_group._sql | strip %}
+{% if my_group == 'group_1'%}some_attribute_value_appropriate_for_group_1
+{% elsif my_group == 'group_2'%}some_other_value
+{%else %}unnassigned
+{%endif%}
+        ;;
+  }
+
+
+}
+explore: test_user_group_mapping {}

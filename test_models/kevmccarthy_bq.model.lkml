@@ -128,3 +128,147 @@ explore: test_suggestions {
   ;;
 }
 ####
+
+view: pivot_order_test {
+ derived_table: {
+    sql: select 'first' as field, 'square' as shape
+    union all select 'second', 'square' as shape
+    union all select 'third', 'square' as shape
+    union all select 'fourth', 'square' as shape
+    union all
+    select 'first' as field, 'cirlce' as shape
+    union all select 'second', 'cirlce' as shape
+    union all select 'third', 'cirlce' as shape
+    union all select 'fourth', 'cirlce' as shape
+    ;;
+  }
+  dimension: field {
+    order_by_field:field_order
+  }
+  dimension: field_order {
+    sql: case ${field}
+          when 'first' then 1
+          when 'second' then 2
+          when 'third' then 3
+          when 'fourth' then 4
+          else 5
+         end
+    ;;
+  }
+  dimension: shape {}
+  measure: count {type:count}
+
+}
+explore: pivot_order_test {}
+
+view: date_filter_ui_options {
+  derived_table: {
+    sql:  select cast(null as date) as test_date , 'a' as test_string;;
+  }
+  dimension: test_date {
+    datatype: date
+    type: date
+  }
+  parameter: start_date {
+    type: date
+  }
+  parameter: end_date {
+    type: date
+  }
+  dimension: test_string {}
+  parameter: string_param {
+    suggest_dimension: test_string
+  }
+
+}
+
+
+
+explore: date_filter_ui_options {}
+
+#html_in_field_value didn't work
+view: html_in_field_value {
+  derived_table: {
+    sql: select '<a href="https://www.w3schools.com">Visit W3Schools</a>' as field_with_html ;;
+  }
+  dimension: field_with_html {
+    # html:<a href="https://www.w3schools.com">Visit W3Schools</a> ;;
+    html: {{value}} ;;
+  }
+}
+
+explore: html_in_field_value {
+
+}
+
+view: suggestions_issue_when_always_filtering {
+  extends: [order_items]
+  dimension: status {
+    suggest_persist_for: "1 seconds"
+  }
+}
+
+explore: suggestions_issue_when_always_filtering {
+  always_filter: {
+    filters:[suggestions_issue_when_always_filtering.created_date: "7 days"]
+  }
+  #want this to do nothing when filter is set on suggestions_issue_when_always_filtering.created_date
+  #but if not (e.g. in suggestions, want to put in a default
+  # sql_always_where:
+  # {%condition suggestions_issue_when_always_filtering.created_date%}test{%endcondition%}
+  # and
+  # 1=1
+  # ;;
+  sql_always_where:
+  is filtered: {{suggestions_issue_when_always_filtering.created_date._is_filtered}}
+  and
+  1=1
+  ;;
+}
+
+# view: +order_items: {
+#   dimension: test_constant_injection {
+#     type: yesno
+#     # expression: NOT matches_filter(${order_items.created_date}, `6 months`) OR matches_filter(${products.brand}, `Levi's`);;
+#     # expression: NOT matches_filter({{order_items.created_date._sql}}, `6 months`) OR matches_filter(${products.brand}, `Levi's`);;
+#     expression: @{test_constant};;
+#     # type: date
+#     # datatype: date
+#     # sql:  @{test_constant}  ;;
+#   }
+
+
+#   # measure: count_users_with_date_filter {
+#   #   type: count
+#   #   filters: [order_items.created_date: "after 2024/03/24"]
+#   # }
+
+
+# }
+include: "/views/products.view.lkml"
+explore: +order_items {
+  join:  products{
+    sql_on: ${order_items.product_id}=${products.id};;
+    relationship: many_to_one
+  }
+
+  # sql_always_where: date_add(order_items.created_at, interval 365 day) ) >= ((TIMESTAMP(DATETIME_ADD(DATETIME(TIMESTAMP_TRUNC(TIMESTAMP_TRUNC(CURRENT_TIMESTAMP(), DAY, 'America/Chicago'), MONTH, 'America/Chicago'), 'America/Chicago'), INTERVAL -1 MONTH), 'America/Chicago'))) ;;
+
+}
+
+view: t {
+  derived_table: {
+    sql_create:  ;;
+  }
+}
+#Amy southwood question 3/13/24
+view: +order_items {
+  # label: "{{_model._name}}: Premium Analytics"
+  label: "{{created_date._sql}}: Premium Analytics"
+}
+explore: +order_items {
+  # label: "{{_model._name}}: Premium Analytics"
+  label: "{{created_date._sql}}: Premium Analytics"
+}
+
+label: "{{_model._name}}:model label"

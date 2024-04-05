@@ -273,3 +273,12 @@ explore: mock_data_extended {
   join: measures_output_prior { sql:  ;; relationship: one_to_one }
   join: wow_comparison_measures { sql:  ;; relationship: one_to_one }
 }
+
+access_grant: grant_test{
+  user_attribute: email
+  allowed_values: ["kevmccarth@google.com"]
+}
+explore: explore_with_access_grants {
+  from: mock_data
+  required_access_grants: [grant_test]
+}
