@@ -332,3 +332,25 @@ dimension: my_name {sql: {{_user_attributes['name']}} ;;}
 
 }
 explore: test_user_group_mapping {}
+
+
+
+
+view: dynamic_labels_test {
+  derived_table: {sql:select 1 as id;;}
+  parameter: test_parameter {
+    allowed_value: {value:"choice_1"}
+    allowed_value: {value:"choice_2"}
+  }
+  dimension: dynamic_field_name_using_label {
+    label: "{% if _field._is_selected %}{{test_parameter._parameter_value | remove: \"'\"}} (can add custom message) {%else%}Shows in Field Picker{%endif%}"
+    sql:  1;;
+  }
+  dimension: dynamic_field_name_using_label_from_parameter {
+    label_from_parameter: test_parameter
+    sql:  1;;
+  }
+
+}
+
+explore: dynamic_labels_test {}

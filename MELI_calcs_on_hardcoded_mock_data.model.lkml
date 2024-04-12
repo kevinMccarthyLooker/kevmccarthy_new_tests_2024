@@ -274,6 +274,15 @@ explore: mock_data_extended {
   join: wow_comparison_measures { sql:  ;; relationship: one_to_one }
 }
 
+view: mock_data_view_with_access_grant {
+  extends: [mock_data]
+  required_access_grants: [grant_test]
+
+}
+view: provide_access_to_access_message {
+  measure: message {type:string sql:max('check access');;}
+}
+
 access_grant: grant_test{
   user_attribute: email
   allowed_values: ["kevmccarth@google.com"]
@@ -281,4 +290,10 @@ access_grant: grant_test{
 explore: explore_with_access_grants {
   from: mock_data
   required_access_grants: [grant_test]
+}
+
+
+explore:  explore_with_view_with_access_grants {
+  from: mock_data_view_with_access_grant
+  join: provide_access_to_access_message {sql:;; relationship:one_to_one}
 }
