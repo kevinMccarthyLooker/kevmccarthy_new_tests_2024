@@ -354,3 +354,126 @@ view: dynamic_labels_test {
 }
 
 explore: dynamic_labels_test {}
+
+
+
+
+# view: test_create_process {
+#   derived_table: {
+#   #   create_process: {
+#   #     sql_step: DECLARE heads BOOL; ;;
+#   #     sql_step:   IF RAND()<0.5 THEN
+#   #   SELECT 'Heads!' as result;
+#   # --   SET heads_count = heads_count + 1;
+#   # ELSE
+#   #   SELECT 'Tails!' as result;
+#   #   -- BREAK;
+#   # END IF ;;
+
+#   #   }
+
+#     # persist_for: "1 seconds"
+#     sql_create: select 1 as id ;; #${SQL_TABLE_NAME}
+#   }
+#   dimension: result {}
+
+
+# }
+# explore:  test_create_process {}
+
+view: t {
+  derived_table: {sql:select 1 as id;;}
+  dimension: id {}
+  measure: count {type:count}
+}
+explore: t {}
+include: "/dash_tile_positions_for_extends.dashboard.lookml"
+include: "/dash2.dashboard.lookml"
+
+
+view: capture_final_sql {
+  derived_table: {sql:select 1 as id
+    union all select 2 as id
+    union all select 3 as id
+
+    ;;}
+  dimension: id {}
+  measure: row {type:number sql:row_number() over();;}
+  # dimension: test {
+  #   sql: results2.capture_final_sql_id ;;
+  # }
+}
+
+explore: capture_final_sql {
+  sql_preamble:
+  --test preamble
+with results as (
+  --end test preamble
+  ;;
+#   sql_always_having:
+#   --test having
+#   1=1
+#   )
+# ) as results
+  # ;;
+
+  sql_always_where: 1=1 group by all) as results ;;
+}
+
+
+view: row_number_checker {
+  derived_table: {
+    sql:select 1 as id,'blue' as color
+    union all select 2 as id,'blue' as color
+    union all select 3 as id,'red' as color
+    ;;}
+  dimension: id {}
+  dimension: color {}
+  measure: sum_id {type:sum sql:${id};;}
+  # measure: sum_id_prior_row {
+  #   type: sum
+  #   expression: offset(${row_number_checker.sum_id},-1);;
+  # }
+  # dimension:  sum_id_prior_row2{
+  #   expression: offset(${row_number_checker.sum_id},-1);;
+  # }
+
+  measure: overall_row_number {
+    # sql: row_number() over() ;;
+    type: number
+
+  }
+}
+explore: row_number_checker {}
+
+
+
+view: median_at_a_different_grain__invoices {
+  derived_table: {
+    sql:select 1 as invoice_id,date('2024-01-01') as invoice_date
+          union all select 2 as invoice_id,date('2024-01-01') as invoice_date
+          ;;}
+  dimension: invoice_id {}
+
+}
+view: median_at_a_different_grain__line_item {
+  derived_table: {
+    sql:select 1 as id,1 as invoice_id, 'blue' as color, 1 as amount
+          union all select 2 as id,1 as invoice_id,'blue' as color, 2 as amount
+          union all select 3 as id,1 as invoice_id,'red' as color, 4 as amount
+          union all select 4 as id,2 as invoice_id,'red' as color, 5 as amount
+          ;;}
+  dimension: id {}
+  dimension: invoice_id {}
+  dimension: color {}
+  dimension: amount {}
+  measure: total_amount {type: sum sql: ${amount} ;;}
+  measure: median_amount {type: median sql: ${amount} ;;}
+}
+
+explore: median_at_a_different_grain__invoices {
+  join: median_at_a_different_grain__line_item {
+    relationship: one_to_many
+    sql_on: ${median_at_a_different_grain__invoices.invoice_id}=${median_at_a_different_grain__line_item.invoice_id};;
+  }
+}
