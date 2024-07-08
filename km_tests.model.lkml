@@ -214,19 +214,19 @@ include: "/test_user_attributes.dashboard.lookml"
 
 explore: order_items {}
 
-view: order_items {
-  sql_table_name: `kevmccarthy.thelook_with_orders_km.order_items` ;;
-  dimension_group: created {
-    type: time timeframes: [date, month, year]
-    datatype: timestamp
-    sql: ${TABLE}.created_at ;;
-  }
-  measure: order_item_count {
-    type: count
-  }
+# view: order_items {
+#   sql_table_name: `kevmccarthy.thelook_with_orders_km.order_items` ;;
+#   dimension_group: created {
+#     type: time timeframes: [date, month, year]
+#     datatype: timestamp
+#     sql: ${TABLE}.created_at ;;
+#   }
+#   measure: order_item_count {
+#     type: count
+#   }
 
 
-}
+# }
 
 
 view: suggestion_order_test {
@@ -475,5 +475,237 @@ explore: median_at_a_different_grain__invoices {
   join: median_at_a_different_grain__line_item {
     relationship: one_to_many
     sql_on: ${median_at_a_different_grain__invoices.invoice_id}=${median_at_a_different_grain__line_item.invoice_id};;
+  }
+}
+
+
+view: suggestions_options_test {
+  derived_table: {sql:select 1 as id, 'test full_suggestions_yes' as full_suggestions_yes, 'test full_suggestions_no' as full_suggestions_no;;}
+  dimension: id {}
+  dimension: full_suggestions_yes {
+    type: string
+    full_suggestions: yes
+  }
+  dimension: full_suggestions_no {
+    type: string
+    full_suggestions: no
+  }
+  measure: count {type:count}
+}
+explore: suggestions_options_test {
+  sql_always_where: 1=0 ;;
+}
+
+
+
+#customer wants a 'total row' which actually adds
+view: custom_totals_with_merge_results {
+  derived_table: {
+    sql:select 1 as id,1 as invoice_id, 'blue' as color, 1 as amount, 2 as denominator
+          union all select 2 as id,1 as invoice_id,'blue' as color, 2 as amount, 2 as denominator
+          union all select 3 as id,1 as invoice_id,'red' as color, 4 as amount, 2 as denominator
+          union all select 4 as id,2 as invoice_id,'red' as color, 5 as amount, 2 as denominator
+          ;;}
+  dimension: id {}
+  dimension: invoice_id {}
+  dimension: color {}
+  dimension: amount {}
+  measure: total_amount {type: sum sql: ${amount} ;;}
+  measure: median_amount {type: median sql: ${amount} ;;}
+  measure: denominator {type:sum}
+  measure: ratio {type:number sql:${total_amount} / ${denominator};;}
+  measure: count {type:count}
+}
+explore: custom_totals_with_merge_results {}
+
+
+view: matches_advanced_vs_range_filter {
+  # derived_table: {
+  #   sql:
+  #   select 'today' as label,current_date as test_date
+  #   union all
+  #   select 'yesterday' as label,date_add(current_date, interval -1 day) as test_date
+  #   ;;
+  # }
+  sql_table_name: kevmccarthy.thelook_with_orders_km.orders_partitioned ;;
+
+  dimension_group: created_at {
+    type: time
+    timeframes: [raw,time,date]
+  }
+  dimension_group: created_at_based_on_date_not_timestampe{
+    type: time
+    timeframes: [raw,date]
+    datatype: date
+    sql: date(${TABLE}.created_at) ;;
+  }
+}
+explore: matches_advanced_vs_range_filter {}
+
+
+view: selected_field_list_idea {
+  derived_table: {sql:select 1 as a, 2 as b;;}
+  dimension: a {}
+  dimension: b {}
+  measure: count {type:count}
+  dimension: dummy_drill {
+    drill_fields: [dummy_drill]
+    sql: 1 ;;
+    # html: {{_field._link}} ;;
+  }
+  measure: a_field_to_show_dummy_drill_link {
+    type: count
+    # html:
+    # {% assign drill_url = selected_field_list_idea.dummy_drill._link %}
+    # {% assign field_list = drill_url | split: 'fields=' | last | split: '&' | first %}
+    # field_list:{{field_list}}
+    # ;;
+    html:  {{ selected_field_list_idea.dummy_drill._link}} ;;
+  }
+  measure: another_dummy_drill {
+    type: count
+    drill_fields: [a]
+
+  }
+  measure: another_dummy_drills_link {
+    type: count
+    html:  link:{{ another_dummy_drill._link}} ;;
+  }
+
+  measure: row_value {
+    type: count
+    # html: {{ row[] }} ;;
+    # html: val:{{row[]}};;
+  }
+  dimension: row_dim {
+    sql: 1 ;;
+    # html: {% assign x = row[] %} ;;#doesn't work as of 5/29/24
+  }
+}
+
+explore: selected_field_list_idea {}
+
+
+view: large_resultset_map_test {
+  derived_table: {
+    sql: select ids as id,rand() as random_value from unnest(generate_array(1, 10000)) ids ;;
+  }
+  dimension: id {}
+  dimension: random_value {}
+  measure: test_measure {
+    type: sum
+    sql: ${random_value} ;;
+  }
+  dimension: random_latitude {
+    sql: rand() * 50 ;;
+  }
+  dimension: random_longitude {
+    sql: rand() * 50 ;;
+  }
+  dimension: random_location {
+    type: location
+    sql_latitude: ${random_latitude} ;;
+    sql_longitude: ${random_longitude} ;;
+  }
+}
+explore: large_resultset_map_test {
+  sql_always_where: 1=1
+  offset 100  ;;
+  sql_always_having: 1=1
+  --always_having
+  ;;
+}
+
+
+#5/30 email from  <ismail.tigrek@zealitconsultants.com>
+# asked if we can show % of total on a pie chart
+include: "/views/order_items.view.lkml"
+view: tooltips_demo_order_items {
+  extends: [order_items]
+
+  measure: order_item_count {
+    type:count
+  }
+
+  measure: percent_of_total {
+    type: percent_of_total
+    sql: ${order_item_count} ;;
+  }
+
+  measure: order_item_count_with_percent_of_total_tooltip {
+    type:count
+    html: {{rendered_value}} ({{percent_of_total._rendered_value}} of total) ;;
+  }
+
+
+
+}
+
+explore: tooltips_demo_order_items {}
+
+access_grant: user_is_people_analytics_or_hr_executive {
+  user_attribute: email
+  allowed_values: ["Kevin McCarthy","Kevin McCarthy2"]
+}
+
+
+view: bind_all_test_view_base {
+  derived_table: {
+    sql: select '1' as id, 'red' as color, 1 as value union all select '2' as id, 'red' as color, 102 as value;;
+  }
+  dimension: id {primary_key:yes }
+  dimension: color {}
+  dimension: value {type:number}
+  measure: total_value {type:sum sql:${value};;}
+  parameter: dummy_param {}
+}
+view: bind_all_test_ndt_with_bind_all {
+  derived_table: {
+    explore_source: bind_all_test {
+      column: color {}
+      column: total_value {}
+      bind_all_filters: yes
+    }
+  }
+  dimension: color {}
+  dimension: total_value_for_color {sql:${TABLE}.total_value;;}
+}
+# view: steal_bind_all_sql {
+#   extends: [bind_all_test_ndt_with_bind_all]
+#   derived_table: {
+#     # sql:  select * from ${bind_all_test_ndt_with_bind_all.SQL_TABLE_NAME};;
+#     sql: select * from (${EXTENDED}) ;;
+#   }
+#   dimension: dummy {}
+# }
+#these overrides didn't work
+view: bind_all_test_ndt_with_bind_all_plus {
+  derived_table: {
+    explore_source: bind_all_test {
+      column: color {}
+      column: total_value {}
+      # bind_filters: {
+      #   from_field: bind_all_test_view_base.color
+      #   to_field: bind_all_test_view_base.id
+      # }
+      bind_all_filters: yes
+      # filters: [bind_all_test_view_base.id: ""]
+      expression_custom_filter:  ${bind_all_test_view_base.id} = "";;
+    }
+  }
+  dimension: color {}
+  dimension: total_value_for_color {sql:${TABLE}.total_value;;}
+}
+
+explore:bind_all_test {
+  view_name: bind_all_test_view_base
+  join: bind_all_test_ndt_with_bind_all {
+    relationship: many_to_one
+    sql_on: ${bind_all_test_view_base.color}=${bind_all_test_ndt_with_bind_all.color} ;;
+  }
+  # join: steal_bind_all_sql {type:cross relationship:one_to_one}
+  join: bind_all_test_ndt_with_bind_all_plus {
+    relationship: many_to_one
+    sql_on: ${bind_all_test_view_base.color}=${bind_all_test_ndt_with_bind_all_plus.color} ;;
   }
 }

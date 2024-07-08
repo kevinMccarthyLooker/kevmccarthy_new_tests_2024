@@ -1,6 +1,6 @@
 view: users {
-  # sql_table_name: `kevmccarthy.thelook_with_orders_km.users` ;;
-  sql_table_name: `users` ;;#adjusted for AA demo
+  sql_table_name: `kevmccarthy.thelook_with_orders_km.users` ;;
+  # sql_table_name: `users` ;;#adjusted for AA demo
   drill_fields: [id]
 
   dimension: id {
@@ -16,7 +16,7 @@ view: users {
 
   dimension: age_tier {
     type: tier
-    tiers: [20,30,40]
+    tiers: [10,20,30,40]
     style: relational
     sql: ${age} ;;
   }
@@ -128,6 +128,11 @@ view: users {
 
   }
 
+
+measure: count_over_40 {
+  filters: [age: ">40"]
+  type: count
+}
 
 
 }

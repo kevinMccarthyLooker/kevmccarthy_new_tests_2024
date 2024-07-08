@@ -1,17 +1,17 @@
 view: order_items {
-  # sql_table_name: `kevmccarthy.thelook_with_orders_km.order_items` ;;
-  derived_table: {
-    sql:
-select
-    id,order_id,user_id,product_id,inventory_item_id,status,created_at,shipped_at,delivered_at,returned_at,sale_price
-    from `kevmccarthy.thelook_with_orders_km.order_items`
-    union all
-    (select
-    id,order_id,user_id,product_id,inventory_item_id,'cancelled' as status,cast('2023-04-02' as timestamp) as created_at,shipped_at,delivered_at,returned_at,sale_price
-    from `kevmccarthy.thelook_with_orders_km.order_items` limit 1)
+  sql_table_name: `kevmccarthy.thelook_with_orders_km.order_items` ;;
+#   derived_table: {
+#     sql:
+# select
+#     id,order_id,user_id,product_id,inventory_item_id,status,created_at,shipped_at,delivered_at,returned_at,sale_price
+#     from `kevmccarthy.thelook_with_orders_km.order_items`
+#     union all
+#     (select
+#     id,order_id,user_id,product_id,inventory_item_id,'cancelled' as status,cast('2023-04-02' as timestamp) as created_at,shipped_at,delivered_at,returned_at,sale_price
+#     from `kevmccarthy.thelook_with_orders_km.order_items` limit 1)
 
-    ;;
-  }
+#     ;;
+#   }
   drill_fields: [id]
 
   dimension: id {
@@ -27,7 +27,8 @@ select
 
     type: time
     timeframes: [raw, time, minute15, date, week, month, quarter, year]
-    sql: date_add(${TABLE}.created_at, interval 365 day) ;;
+    # sql: date_add(${TABLE}.created_at, interval 365 day) ;;
+    sql:${TABLE}.created_at;;
   }
   parameter: filter_to_last_day_of_prior_month {
     type: yesno
