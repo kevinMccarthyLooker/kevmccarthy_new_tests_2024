@@ -1,5 +1,9 @@
 connection: "kevmccarthy_bq"
 
+datagroup: test_datagroup {
+  sql_trigger: select extract(SECOND from current_timestamp()) ;;
+}
+
 view: drill_test {
   derived_table: {
     sql:
@@ -51,6 +55,16 @@ view: drill_test {
     {% assign link_before_filter_begin = link | split: filter_spec_to_search_for | first %}
     {% assign link_filter_text = link | split: filter_spec_to_search_for | last | split: '&' | first | prepend: filter_spec_to_search_for %}
     <a href='{{link_before_filter_begin | replace: link_filter_text, ''}}'>test link</a>;;
+  }
+
+  parameter: param_ui_test {
+    type: string
+    allowed_value: {value:"a"}
+    allowed_value: {value:"b"}
+  }
+  filter: filter_ui_test {
+    type: string
+    # sql: ${color}=${filter_ui_test} ;;
   }
 }
 
