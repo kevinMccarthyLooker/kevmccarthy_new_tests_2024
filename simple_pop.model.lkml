@@ -6,7 +6,11 @@ view: order_items {
     sql:
     select 'current' as period, date(created_at) as the_date, * from `kevmccarthy.thelook_with_orders_km.order_items`
     union all
-    select 'prior' as period, date_add(date(created_at), interval 1 year) as the_date, * from `kevmccarthy.thelook_with_orders_km.order_items`
+    select 'prior year' as period, date_add(date(created_at), interval 1 year) as the_date, * from `kevmccarthy.thelook_with_orders_km.order_items`
+    union all
+    select 'prior quarter' as period, date_add(date(created_at), interval 1 quarter) as the_date, * from `kevmccarthy.thelook_with_orders_km.order_items`
+    union all
+    select 'prior month' as period, date_add(date(created_at), interval 1 month) as the_date, * from `kevmccarthy.thelook_with_orders_km.order_items`
     ;;
   }
 
@@ -40,6 +44,21 @@ view: order_items {
   measure: prior_count {
     type: count
     filters: [period: "prior"]
+  }
+
+
+  #testing more named periods
+  measure: prior_year_count {
+    type: count
+    filters: [period: "prior year"]
+  }
+  measure: prior_quarter_count {
+    type: count
+    filters: [period: "prior quarter"]
+  }
+  measure: prior_month_count {
+    type: count
+    filters: [period: "prior month"]
   }
 
 }
