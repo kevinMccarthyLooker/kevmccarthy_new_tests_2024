@@ -67,6 +67,7 @@ view: order_items {
   }
   dimension: order_id {
     view_label: "System Keys"
+    label: "test label"
     type: number
     # hidden: yes
     sql: ${TABLE}.order_id ;;

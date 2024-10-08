@@ -2,8 +2,8 @@
 view: events {
   # The sql_table_name parameter indicates the underlying database table
   # to be used for all fields in this view.
-  # sql_table_name: `kevmccarthy.thelook_with_orders_km.events` ;;
-  sql_table_name: `events` ;;#changed for AA demo
+  sql_table_name: `kevmccarthy.thelook_with_orders_km.events` ;;
+  # sql_table_name: `events` ;;#changed for AA demo
   drill_fields: [id]
 
   # This primary key is the unique key for this table in the underlying database.

@@ -388,7 +388,7 @@ view: t {
 }
 explore: t {}
 include: "/dash_tile_positions_for_extends.dashboard.lookml"
-include: "/dash2.dashboard.lookml"
+
 
 
 view: capture_final_sql {
@@ -707,5 +707,14 @@ explore:bind_all_test {
   join: bind_all_test_ndt_with_bind_all_plus {
     relationship: many_to_one
     sql_on: ${bind_all_test_view_base.color}=${bind_all_test_ndt_with_bind_all_plus.color} ;;
+  }
+}
+
+view: test_dates {
+  derived_table: {
+    sql: select date('2024-01-01') as a_date ;;
+  }
+  dimension: a_date {
+    type: date
   }
 }

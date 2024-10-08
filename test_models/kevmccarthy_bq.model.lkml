@@ -166,6 +166,7 @@ view: date_filter_ui_options {
     sql:  select cast(null as date) as test_date , 'a' as test_string;;
   }
   dimension: test_date {
+    label: "different label test"
     datatype: date
     type: date
   }
