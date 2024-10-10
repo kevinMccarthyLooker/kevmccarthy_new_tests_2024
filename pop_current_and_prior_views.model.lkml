@@ -49,6 +49,8 @@ view: order_items_fields {
     type: yesno
     sql: order_items.period=${which_period_override_me_in_extension} ;;
   }
+
+  dimension: sale_price {type:number}
   measure: count_filtered_to_this_period {
     label: "Count({{which_period_override_me_in_extension._sql}})"
     hidden: no
@@ -56,7 +58,19 @@ view: order_items_fields {
     sql: case when order_items.id is not null then 1 else null end;;
     filters: [period_is_this_period: "Yes"]
   }
+  measure: count_2 {
+    hidden: no
+    type: count
+  }
+  measure: total_value {
+    hidden: no
+    type: sum
+    sql: ${sale_price};;
+  }
 }
+
+
+
 
 view: current_order_items {
   extends: [order_items_fields]
@@ -67,6 +81,15 @@ view: current_order_items {
 view: prior_month_order_items {
   extends: [order_items_fields]
   dimension: which_period_override_me_in_extension {sql:'prior month';;}
+
+  measure: count_2 {
+    type: number
+    sql: max(case when ${period_is_this_period} then 1 else null end) * {{ order_items.count_2._sql}}  ;;
+  }
+  measure: total_value {
+    type: number
+    sql: max(case when ${period_is_this_period} then 1 else null end) * {{ order_items.total_value._sql}} ;;
+  }
 }
 view: prior_quarter_order_items {
   extends: [order_items_fields]
