@@ -35,7 +35,7 @@ view: order_items {
   #this found that counts are weird cause looker injects count(*) where it can without checking for null/missing
   #fabio has pointed out before the counts should really be modified to count where pk is not 0...
     #updating count to check
-    measure: count {type:count filters: [pk: "-NULL"]}
+  measure: count {type:count filters: [pk: "-NULL"]}
   measure: test_complex_measure {
     type: number
     sql: ${total_value}/nullif(${count},0) ;;
@@ -78,16 +78,16 @@ view: order_items_and_periods_cross_joined_and_wide {
     timeframes: [raw,month]
     datatype: date
   }
-  set: measures {fields:[count,total_value,test_complex_measure]}
   ##how to hide measures?!
+  #tried this way: list all measures here, and then use fields to exclude extraneous fields we don't want to show
+  set: measures {fields:[count,total_value,test_complex_measure]}
 }
 
 #We can then refer to the extra columns from the wide unioned table (as noted, they prefixed with a table name alias) with these sourceless views
 # Looker qualifies fields from the sourec (i.e. ${TABLE} references) with the view name, so we align it to the special aliased columns in the main view
 view: order_items_curr {
   extends: [order_items_and_periods_cross_joined_and_wide]
-  ##hide dimensions! or hide all and unhide all measures...
-  # fields_hidden_by_default: yes
+  ##hide dimensions! or hide all and unhide all measures...  did this with fields and the set called measures
 }
 view: order_items_prior_month {
   extends: [order_items_and_periods_cross_joined_and_wide]
@@ -98,6 +98,7 @@ view: order_items_prior_year {
   ##hide dimensions!
 }
 explore: order_items_and_periods_cross_joined_and_wide {
+  #hide extra (and confusing) fields.  Need to keep pk for the count(*) correction (filter to pk not null)
   fields: [
     order_items*, -order_items.measures*,
     order_items_curr.measures*,order_items_curr.pk,
