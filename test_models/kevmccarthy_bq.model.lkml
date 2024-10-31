@@ -269,7 +269,7 @@ view: +order_items {
 }
 explore: +order_items {
   # label: "{{_model._name}}: Premium Analytics"
-  label: "{{created_date._sql}}: Premium Analytics"
+  # label: "{{created_date._sql}}: Premium Analytics"
 }
 
 label: "{{_model._name}}:model label"

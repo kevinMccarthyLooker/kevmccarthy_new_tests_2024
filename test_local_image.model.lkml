@@ -13,7 +13,7 @@ view: test_local_image {
     {% if value == 1 %}
     <img src="https://i.ibb.co/g94xqB2/Google-Profile-Picture-copy.png" alt="Google-Profile-Picture-copy" border="0">
     {%else%}
-    <img src="https://i.ibb.co/rx6F1fv/Pessimist-Arms.png" alt="Pessimist-Arms" border="0">
+    <img src="https://i.ibb.co/g94xqB2/Google-Profile-Picture-copy.png" alt="Google-Profile-Picture-copy" border="0" style="width:200px;height:200px;">
     {%endif%}
     ;;
     # html:

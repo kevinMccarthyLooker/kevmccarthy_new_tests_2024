@@ -637,6 +637,15 @@ view: tooltips_demo_order_items {
     html: {{rendered_value}} ({{percent_of_total._rendered_value}} of total) ;;
   }
 
+measure: table_tooltip {
+  type: count
+#   html:
+# <div class="tooltip">Hover over me
+#   <span class="tooltiptext">Tooltip text</span>
+# </div>
+# ;;
+  html: <span title="ttttttt">{{rendered_value}}</span> ;;
+}
 
 
 }
@@ -712,9 +721,85 @@ explore:bind_all_test {
 
 view: test_dates {
   derived_table: {
-    sql: select date('2024-01-01') as a_date ;;
+    sql: select date('2024-01-01') as a_date, 'test string' as string_field ;;
   }
   dimension: a_date {
     type: date
   }
+  dimension: string_field {}
+  parameter: test_parameter {
+    suggest_dimension: string_field
+  }
 }
+explore: test_dates {}
+
+
+view: order_items_avg_duration_formatting_question {
+  extends: [order_items]
+  dimension: avg_stage_duration_dim {
+    type: duration_day
+    sql_start: ${created_raw} ;;
+    sql_end: date_add(${shipped_raw},interval 40 day) ;;
+  }
+  measure: avg_stage_duration {
+    type: average
+    sql: ${avg_stage_duration_dim} ;;
+
+  }
+
+}
+
+explore: order_items_avg_duration_formatting_question {}
+
+view: suggestions {
+  derived_table: {
+    sql:
+SELECT
+    products.name  AS products_name
+FROM `kevmccarthy.thelook_with_orders_km.products`  AS products
+    ;;
+  }
+  dimension: products_name {}
+}
+explore: suggestions {}
+
+include: "/views/products.view.lkml"
+view: +products {
+  dimension: name2 {
+    suggest_explore: suggestions
+    suggest_dimension: suggestions.products_name
+  }
+  dimension: name {
+
+  }
+}
+explore: products {}
+
+
+view: order_items_dymnamic_references {
+  extends: [order_items]
+  dimension: dynamic_ref_dim {
+    sql:
+    case
+      when {% condition order_items_dymnamic_references.status %}'Complete'{%endcondition%} then 2
+      when {% condition order_items_dymnamic_references.status %}'Cancelled'{%endcondition%} then 1
+      else 0
+    end
+    ;;
+  }
+  measure: dynamic_ref_measure {
+    type: number
+    sql:
+    max(
+      case
+        when {% condition order_items_dymnamic_references.status %}'Complete'{%endcondition%} then 2000
+        when {% condition order_items_dymnamic_references.status %}'Cancelled'{%endcondition%} then 1000
+        else 0
+      end
+    )
+    ;;
+
+  }
+}
+
+explore: order_items_dymnamic_references {}
