@@ -644,7 +644,12 @@ measure: table_tooltip {
 #   <span class="tooltiptext">Tooltip text</span>
 # </div>
 # ;;
-  html: <span title="ttttttt">{{rendered_value}}</span> ;;
+  # html: <button title="ttttttt" class=tooltiptext>
+
+  # {{rendered_value}}
+  # </button> ;;
+
+  html:<div class="vis"><div class="vis-single-value" style="background-color:#ffffff;"data-toggle="tooltip" data-placement="top" title="t {{value}}" >{{rendered_value }}</div></div>;;
 }
 
 
